@@ -170,8 +170,5 @@ Click the **"⚡ Walkthrough"** button in the header for interactive guidance:
 
 ## 🔮 Future Roadmap
 
-- [ ] **Custom Branded Domains (CNAME / SSL)**: Support for custom domain mapping (e.g. `go.company.com`) with automated Let's Encrypt certificates.
-- [ ] **Geo-Fencing & Localization**: Route visitors to language-specific destinations based on ISO country codes.
-- [ ] **Public Developer API & Webhooks**: OpenAPI/Swagger documentation with HMAC-authenticated webhooks on click events.
 - [ ] **A/B Destination Split Testing**: Dynamic traffic percentage splits across multiple URLs to measure conversion efficacy.
 - [ ] **Team Workspaces & RBAC**: Fine-grained team member invitations with Role-Based Access Control per workspace.
