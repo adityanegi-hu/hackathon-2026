@@ -22,6 +22,13 @@ export const RESERVED_SLUGS = [
   'settings', 'login', 'signup', 'register', 'auth', 'public',
   'assets', 'dist', 'favicon', 'index', 'status', 'health', 'help'
 ];
+// ------------------------------------------------------------
+// Environment detection – works in the browser, falls back to an
+// in‑memory store when imported in Node (e.g., for unit tests or the
+// click‑simulation script). This prevents `ReferenceError: localStorage`
+// is not defined.
+const isBrowser = typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+const fallbackStore = {};
 
 // In-browser SHA-256 helper
 async function sha256(message) {
@@ -380,6 +387,7 @@ function getInitialSeedData() {
 // ----------------------------------------------------------------------------
 
 function loadKey(key, fallback) {
+  if (!isBrowser) return fallback;
   try {
     const raw = localStorage.getItem(STORAGE_KEY_PREFIX + key);
     return raw ? JSON.parse(raw) : fallback;
@@ -389,6 +397,10 @@ function loadKey(key, fallback) {
 }
 
 function saveKey(key, value) {
+  if (!isBrowser) {
+    fallbackStore[STORAGE_KEY_PREFIX + key] = value;
+    return;
+  }
   try {
     localStorage.setItem(STORAGE_KEY_PREFIX + key, JSON.stringify(value));
   } catch (err) {
@@ -398,6 +410,7 @@ function saveKey(key, value) {
 
 // Ensure state is initialized
 function initStorage() {
+  if (!isBrowser) return;
   const initialized = localStorage.getItem(STORAGE_KEY_PREFIX + 'initialized');
   if (!initialized) {
     const seed = getInitialSeedData();
