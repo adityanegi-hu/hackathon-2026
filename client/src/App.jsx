@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { BarChart3, Link2, Layers, QrCode, Sparkles, Settings } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import TopHeader from './components/TopHeader';
 import AnalyticsView from './components/AnalyticsView';
@@ -22,6 +23,7 @@ export default function App() {
   const [pathname, setPathname] = useState(window.location.pathname || '/');
   const [currentTab, setCurrentTab] = useState('analytics');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [role, setRole] = useState('user'); // 'user' | 'admin' | 'visitor'
   const [period, setPeriod] = useState('30d');
   const [selectedCampaign, setSelectedCampaign] = useState('');
@@ -130,21 +132,40 @@ export default function App() {
     return <PublicVisitorView onReturnHome={handleReturnHome} />;
   }
 
+  // Mobile bottom-nav tabs
+  const mobileNavItems = [
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'links',     label: 'Links',     icon: Link2 },
+    { id: 'campaigns', label: 'Campaigns', icon: Layers },
+    { id: 'qr',        label: 'QR Studio', icon: QrCode },
+    { id: 'bio',       label: 'Bio',       icon: Sparkles },
+    { id: 'settings',  label: 'Settings',  icon: Settings },
+  ];
+
   return (
     <div className="app-shell">
+      {/* Mobile sidebar scrim */}
+      {isMobileMenuOpen && (
+        <div
+          className="mobile-sidebar-scrim"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sleek Collapsible Frosted Glass Sidebar */}
       <Sidebar
         currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
+        setCurrentTab={(tab) => { setCurrentTab(tab); setIsMobileMenuOpen(false); }}
         role={role}
         setRole={handleSetRole}
-        onOpenCreate={() => setCreateModalOpen(true)}
+        onOpenCreate={() => { setCreateModalOpen(true); setIsMobileMenuOpen(false); }}
         workspaces={workspaces}
         selectedWorkspace={selectedWorkspace}
         setSelectedWorkspace={setSelectedWorkspace}
         abuseCount={abuseCount}
         isCollapsed={isSidebarCollapsed}
         setIsCollapsed={setIsSidebarCollapsed}
+        isMobileOpen={isMobileMenuOpen}
       />
 
       {/* Main Content Layout */}
@@ -156,6 +177,7 @@ export default function App() {
           onOpenDemoGuide={() => setDemoGuideOpen(true)}
           totalLinksCount={links.length}
           totalClicksCount={analytics?.kpis?.totalVisits || analytics?.kpis?.totalClicks || 0}
+          onMobileMenuToggle={() => setIsMobileMenuOpen(prev => !prev)}
         />
 
         {/* Scrollable Main Canvas */}
@@ -251,6 +273,22 @@ export default function App() {
             </>
           )}
         </main>
+
+        {/* Mobile Bottom Navigation Bar */}
+        <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
+          {mobileNavItems.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              className={`mobile-nav-item ${currentTab === id ? 'active' : ''}`}
+              onClick={() => setCurrentTab(id)}
+              aria-label={label}
+            >
+              {currentTab === id && <span className="mobile-nav-active-dot" />}
+              <Icon size={20} />
+              <span>{label}</span>
+            </button>
+          ))}
+        </nav>
       </div>
 
       {/* Modals */}

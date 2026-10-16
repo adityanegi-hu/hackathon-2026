@@ -67,6 +67,11 @@ body {
   overflow: hidden;
 }
 
+/* prevent horizontal scroll on small screens */
+html {
+  overflow-x: hidden;
+}
+
 /* Custom Sleek Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -928,12 +933,267 @@ h1, h2, h3, h4, h5, h6 {
   animation: fadeIn 0.25s ease-out;
 }
 
-/* Responsive adjustments */
-@media (max-width: 900px) {
+/* ========================================================= */
+/* RESPONSIVE — DESKTOP LARGE (≥1280px)                      */
+/* ========================================================= */
+@media (min-width: 1280px) {
+  .main-canvas-scroll {
+    padding: 2rem 2.5rem 3rem;
+  }
+}
+
+/* ========================================================= */
+/* RESPONSIVE — TABLET (768px – 1024px)                       */
+/* ========================================================= */
+@media (max-width: 1024px) {
+  .sidebar-glass {
+    width: 240px;
+    min-width: 240px;
+  }
+
+  .main-canvas-scroll {
+    padding: 1.25rem 1.25rem 2rem;
+  }
+
+  .top-header-glass {
+    padding: 0 1.25rem;
+  }
+
+  /* Hide verbose header pills on smaller screens */
+  .system-live-pill {
+    display: none;
+  }
+}
+
+/* ========================================================= */
+/* RESPONSIVE — MOBILE / ANDROID (≤768px)                    */
+/* ========================================================= */
+@media (max-width: 768px) {
+
+  /* ── Body & root ── */
+  body {
+    overflow: hidden; /* managed per-element */
+  }
+
+  /* ── App shell becomes a single column ── */
+  .app-shell {
+    flex-direction: column;
+  }
+
+  /* ── Sidebar: hidden off-screen by default, slides in as overlay ── */
   .sidebar-glass {
     position: fixed;
-    left: 0;
+    left: -280px;
     top: 0;
     bottom: 0;
+    width: 280px !important;
+    min-width: 280px !important;
+    z-index: 200;
+    transition: left 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease;
+    box-shadow: none;
+  }
+
+  .sidebar-glass.mobile-open {
+    left: 0;
+    box-shadow: 6px 0 40px rgba(0, 0, 0, 0.65);
+  }
+
+  /* When sidebar is open, show a scrim behind it */
+  .mobile-sidebar-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 7, 18, 0.72);
+    backdrop-filter: blur(4px);
+    z-index: 199;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  /* ── Main content takes full width ── */
+  .main-content-layout {
+    width: 100vw;
+    height: 100dvh;
+    height: 100vh; /* fallback */
+    flex: 1;
+  }
+
+  /* ── Top header mobile ── */
+  .top-header-glass {
+    height: 60px;
+    min-height: 60px;
+    padding: 0 1rem;
+  }
+
+  .current-view-badge {
+    font-size: 0.95rem;
+  }
+
+  .current-view-subtitle {
+    display: none;
+  }
+
+  /* Hide desktop-only header actions */
+  .header-action-btn.simulator,
+  .header-action-btn.guide,
+  .header-action-btn.bio,
+  .system-live-pill {
+    display: none;
+  }
+
+  /* Hamburger button shown on mobile */
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.18s ease;
+  }
+
+  .mobile-menu-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+  }
+
+  /* ── Main canvas ── */
+  .main-canvas-scroll {
+    padding: 1rem 0.85rem 90px; /* bottom pad for bottom nav */
+  }
+
+  /* ── Bottom Navigation Bar ── */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 150;
+    background: rgba(8, 12, 24, 0.94);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid var(--border-medium);
+    padding: 0.5rem 0.25rem;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    gap: 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.35);
+  }
+
+  .mobile-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.4rem 0.2rem;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 0.62rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.18s ease;
+    position: relative;
+  }
+
+  .mobile-nav-item.active {
+    color: #818cf8;
+  }
+
+  .mobile-nav-item.active svg {
+    filter: drop-shadow(0 0 6px rgba(99, 102, 241, 0.7));
+  }
+
+  .mobile-nav-active-dot {
+    position: absolute;
+    top: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2.5px;
+    border-radius: 2px;
+    background: #818cf8;
+    box-shadow: 0 0 8px #818cf8;
+  }
+
+  /* ── Modal full-screen on mobile ── */
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-content {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    max-height: 92dvh;
+    max-height: 92vh;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* ── Touch-friendly inputs ── */
+  .glass-input {
+    font-size: 1rem; /* prevent iOS zoom-in */
+    padding: 0.85rem 1rem;
+  }
+
+  select {
+    font-size: 1rem;
+  }
+
+  /* ── Toast adjustments ── */
+  .toast-container {
+    bottom: 5.5rem;
+    right: 1rem;
+    left: 1rem;
+  }
+
+  .toast {
+    font-size: 0.85rem;
+    padding: 0.75rem 1rem;
+  }
+
+  /* ── Sidebar collapsed class unused on mobile ── */
+  .sidebar-glass.collapsed {
+    width: 280px !important;
+    min-width: 280px !important;
+  }
+}
+
+/* ========================================================= */
+/* RESPONSIVE — SMALL MOBILE (≤480px)                        */
+/* ========================================================= */
+@media (max-width: 480px) {
+  .main-canvas-scroll {
+    padding: 0.85rem 0.65rem 88px;
+  }
+
+  .top-header-glass {
+    padding: 0 0.75rem;
+  }
+
+  .current-view-badge {
+    font-size: 0.9rem;
+  }
+}
+
+/* Desktop: hide mobile-only elements */
+@media (min-width: 769px) {
+  .mobile-menu-btn {
+    display: none;
+  }
+
+  .mobile-bottom-nav {
+    display: none;
+  }
+
+  .mobile-sidebar-scrim {
+    display: none;
   }
 }

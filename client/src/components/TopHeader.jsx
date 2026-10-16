@@ -11,7 +11,8 @@ import {
   ShieldAlert, 
   Settings,
   Activity,
-  Compass
+  Compass,
+  Menu
 } from 'lucide-react';
 
 export default function TopHeader({ 
@@ -19,7 +20,8 @@ export default function TopHeader({
   onOpenSimulator, 
   onOpenDemoGuide,
   totalLinksCount = 0,
-  totalClicksCount = 0
+  totalClicksCount = 0,
+  onMobileMenuToggle
 }) {
   const tabMeta = {
     analytics: { title: 'Analytics & Live Telemetry', subtitle: 'Real-time performance and geographic visitor breakdown', icon: BarChart3 },
@@ -38,6 +40,15 @@ export default function TopHeader({
 
   return (
     <header className="top-header-glass">
+      {/* Hamburger — only visible on mobile (≤768px) via CSS */}
+      <button
+        className="mobile-menu-btn"
+        onClick={onMobileMenuToggle}
+        aria-label="Open navigation menu"
+      >
+        <Menu size={20} />
+      </button>
+
       <div className="top-header-left">
         <div className="current-view-badge">
           <TabIcon size={16} className="view-icon" />

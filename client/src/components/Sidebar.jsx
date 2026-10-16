@@ -29,7 +29,8 @@ export default function Sidebar({
   setSelectedWorkspace,
   abuseCount = 0,
   isCollapsed,
-  setIsCollapsed
+  setIsCollapsed,
+  isMobileOpen = false
 }) {
   const navSections = [
     {
@@ -59,7 +60,7 @@ export default function Sidebar({
 
   return (
     <aside 
-      className={`sidebar-glass ${isCollapsed ? 'collapsed' : ''}`}
+      className={`sidebar-glass ${isCollapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''}`}
       aria-label="Application Navigation"
     >
       {/* Top Branding & Collapse Button */}
