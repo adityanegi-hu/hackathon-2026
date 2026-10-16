@@ -15,19 +15,6 @@
 - **Abuse Monitoring & Platform Governance**: Domain safety blocklist with auto-quarantine and 1-click administrative link takedowns.
 
 LinkPulse is built with an **Express 5 & MongoDB (Mongoose ODM)** backend and a **React SPA (Vite, Lucide Icons, Glassmorphism)** frontend, serving live data on `http://localhost:5000`.
-
----
-
-## 🔒 Zero External APIs & 100% Offline Architecture
-
-> **Compliance & Self-Sufficiency**: LinkPulse runs **strictly without any external, third-party, or paid APIs**.
-> - **No LLM / AI APIs**: No OpenAI, Gemini, Claude, or third-party cloud AI dependencies.
-> - **Local Geolocation & Telemetry**: IP-to-location mapping uses a deterministic offline hash table of 10 international regions and cities without calling external GeoIP/MaxMind APIs.
-> - **Self-Hosted QR Code Engine**: Direct vector SVG and raster PNG rendering using the local `qrcode` engine — zero third-party QR services.
-> - **Offline Security & Abuse Quarantine**: Malicious domain screening and instant link suspensions are managed entirely by the internal `DomainBlocklist` MongoDB collection.
-> - **Zero External Auth/Cloud Services**: Local crypto SHA-256 password gates and role-based permissions without external identity providers (Auth0/Firebase).
-> - **Offline-First Demo**: Runs seamlessly in an isolated or air-gapped environment without internet access.
-
 ---
 
 ## 🚀 Complete Feature Specification
@@ -183,8 +170,5 @@ Click the **"⚡ Walkthrough"** button in the header for interactive guidance:
 
 ## 🔮 Future Roadmap
 
-- [ ] **Custom Branded Domains (CNAME / SSL)**: Support for custom domain mapping (e.g. `go.company.com`) with automated Let's Encrypt certificates.
-- [ ] **Geo-Fencing & Localization**: Route visitors to language-specific destinations based on ISO country codes.
-- [ ] **Public Developer API & Webhooks**: OpenAPI/Swagger documentation with HMAC-authenticated webhooks on click events.
 - [ ] **A/B Destination Split Testing**: Dynamic traffic percentage splits across multiple URLs to measure conversion efficacy.
 - [ ] **Team Workspaces & RBAC**: Fine-grained team member invitations with Role-Based Access Control per workspace.
