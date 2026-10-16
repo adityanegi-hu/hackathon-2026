@@ -1,14 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  QrCode, 
   Download, 
-  Copy, 
-  Check, 
   ExternalLink, 
-  Sparkles, 
-  Smartphone, 
-  Palette, 
-  ShieldCheck 
+  Smartphone 
 } from 'lucide-react';
 
 export default function QRStudioView({ links = [], initialLink = null, notify }) {
@@ -18,8 +12,6 @@ export default function QRStudioView({ links = [], initialLink = null, notify })
   const [ecc, setEcc] = useState('M'); // L, M, Q, H
   const [size, setSize] = useState(360);
   const [qrDataUrl, setQrDataUrl] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   // Sync when initialLink changes
   useEffect(() => {
@@ -33,7 +25,6 @@ export default function QRStudioView({ links = [], initialLink = null, notify })
     if (!selectedLinkCode) return;
 
     let isMounted = true;
-    setLoading(true);
 
     const query = new URLSearchParams({
       color: fgColor,
@@ -50,10 +41,7 @@ export default function QRStudioView({ links = [], initialLink = null, notify })
           setQrDataUrl(data.qrDataUrl);
         }
       })
-      .catch(err => console.error('Failed to load QR code:', err))
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
+      .catch(err => console.error('Failed to load QR code:', err));
 
     return () => { isMounted = false; };
   }, [selectedLinkCode, fgColor, bgColor, ecc, size]);

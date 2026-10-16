@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
 import { 
-  Layers, 
-  Plus, 
-  Trash2, 
-  TrendingUp, 
-  Link2, 
   FolderPlus, 
-  ArrowRight,
-  ExternalLink
+  Trash2, 
+  ArrowRight 
 } from 'lucide-react';
 
 export default function CampaignsView({ 

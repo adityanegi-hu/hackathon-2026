@@ -505,7 +505,7 @@ async function seedInitialData() {
     slug: 'alex-growth',
     title: 'Alex Rivera | Growth & Product Lead',
     bio: 'Curating high-impact marketing tools, open-source projects, and keynote recordings.',
-    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=250&auto=format&fit=crop&q=80',
+    avatar_url: '',
     theme: 'luxury-dark',
     links: [
       { title: '🚀 Summer 2026 Product Showcase', url: 'http://localhost:5000/summer26', subtitle: 'Explore the newest features' },

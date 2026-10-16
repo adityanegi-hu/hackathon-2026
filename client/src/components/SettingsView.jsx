@@ -3,14 +3,9 @@ import {
   Settings, 
   Layers, 
   FolderPlus, 
-  ShieldCheck, 
   Database, 
   Save, 
-  Check, 
-  Globe, 
-  Lock, 
-  Sparkles,
-  Server
+  Lock 
 } from 'lucide-react';
 
 export default function SettingsView({ workspaces = [], onRefresh, notify, role = 'user' }) {

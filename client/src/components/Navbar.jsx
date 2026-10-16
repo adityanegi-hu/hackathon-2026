@@ -13,9 +13,7 @@ import {
   User, 
   Shield, 
   Globe,
-  Settings,
-  HelpCircle,
-  Folder
+  Settings
 } from 'lucide-react';
 
 export default function Navbar({ 

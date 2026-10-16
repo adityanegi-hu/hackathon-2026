@@ -18,6 +18,18 @@ LinkPulse is built with an **Express 5 & MongoDB (Mongoose ODM)** backend and a 
 
 ---
 
+## 🔒 Zero External APIs & 100% Offline Architecture
+
+> **Compliance & Self-Sufficiency**: LinkPulse runs **strictly without any external, third-party, or paid APIs**.
+> - **No LLM / AI APIs**: No OpenAI, Gemini, Claude, or third-party cloud AI dependencies.
+> - **Local Geolocation & Telemetry**: IP-to-location mapping uses a deterministic offline hash table of 10 international regions and cities without calling external GeoIP/MaxMind APIs.
+> - **Self-Hosted QR Code Engine**: Direct vector SVG and raster PNG rendering using the local `qrcode` engine — zero third-party QR services.
+> - **Offline Security & Abuse Quarantine**: Malicious domain screening and instant link suspensions are managed entirely by the internal `DomainBlocklist` MongoDB collection.
+> - **Zero External Auth/Cloud Services**: Local crypto SHA-256 password gates and role-based permissions without external identity providers (Auth0/Firebase).
+> - **Offline-First Demo**: Runs seamlessly in an isolated or air-gapped environment without internet access.
+
+---
+
 ## 🚀 Complete Feature Specification
 
 ### 1. ⚡ High-Speed Redirection Engine (`/:code`, `/r/:code`, `/s/:code`)

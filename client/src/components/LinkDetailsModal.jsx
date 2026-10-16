@@ -5,25 +5,17 @@ import {
   Copy, 
   Check, 
   QrCode, 
-  Clock, 
-  MousePointerClick, 
-  Lock, 
-  Smartphone, 
   Layers, 
-  Tag, 
-  ShieldCheck,
   Download,
   BarChart2,
   Edit3,
-  Save,
-  RotateCcw
+  Save
 } from 'lucide-react';
 
 export default function LinkDetailsModal({ 
   link, 
   isOpen, 
   onClose, 
-  onOpenQr, 
   onRefresh,
   campaigns = [],
   notify,
@@ -31,7 +23,6 @@ export default function LinkDetailsModal({
 }) {
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'clicks' | 'qr' | 'edit'
   const [details, setDetails] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
   // Edit Form State
@@ -48,7 +39,6 @@ export default function LinkDetailsModal({
     if (!link || !isOpen) return;
 
     setActiveTab('overview');
-    setLoading(true);
     fetch(`/api/links/${link.id}`)
       .then(r => r.json())
       .then(data => {
@@ -62,8 +52,7 @@ export default function LinkDetailsModal({
         setEditMobileUrl(l.mobile_url || '');
         setEditCampaignId(l.campaign_id ? String(l.campaign_id) : '');
       })
-      .catch(err => console.error('Failed to load link details:', err))
-      .finally(() => setLoading(false));
+      .catch(err => console.error('Failed to load link details:', err));
   }, [link, isOpen]);
 
   if (!isOpen || !link) return null;
@@ -109,7 +98,7 @@ export default function LinkDetailsModal({
 
       notify('Link rules and details updated successfully!', 'success');
       setDetails(prev => ({ ...prev, link: data.link }));
-      onRefresh && onRefresh();
+      if (onRefresh) onRefresh();
       setActiveTab('overview');
     } catch (err) {
       notify(err.message, 'error');

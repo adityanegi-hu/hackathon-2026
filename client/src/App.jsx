@@ -13,7 +13,7 @@ import CreateLinkModal from './components/CreateLinkModal';
 import SimulatorModal from './components/SimulatorModal';
 import LinkDetailsModal from './components/LinkDetailsModal';
 import DemoGuideModal from './components/DemoGuideModal';
-import { CheckCircle2, AlertCircle, Info, Sparkles } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info } from 'lucide-react';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState('analytics');
@@ -106,7 +106,7 @@ export default function App() {
     }
   }, [role]);
 
-  const handleLinkCreated = (newLink) => {
+  const handleLinkCreated = () => {
     fetchData();
   };
 

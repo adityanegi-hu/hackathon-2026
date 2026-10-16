@@ -153,13 +153,10 @@ function renderNoticePage({ title, badge, badgeColor, message, shortCode, subDet
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title} | LinkPulse</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #0f172a 45%, #030712 100%);
       color: #f8fafc;
       min-height: 100vh;
@@ -1308,11 +1305,10 @@ app.get('/bio/:slug', async (req, res) => {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${bio.title} | LinkPulse Bio</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: radial-gradient(circle at 50% 10%, #1e1b4b 0%, #0b0f19 50%, #030712 100%);
       color: #f8fafc;
       min-height: 100vh;
@@ -1433,7 +1429,7 @@ app.get('/bio/:slug', async (req, res) => {
 </head>
 <body>
   <div class="bio-container">
-    ${bio.avatar_url ? `<img src="${bio.avatar_url}" alt="${bio.title}" class="avatar" />` : `<div class="avatar-fallback">${bio.title.charAt(0)}</div>`}
+    ${bio.avatar_url ? `<img src="${bio.avatar_url}" alt="${bio.title}" class="avatar" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'104\\' height=\\'104\\' viewBox=\\'0 0 104 104\\'><circle cx=\\'52\\' cy=\\'52\\' r=\\'52\\' fill=\\'%236366f1\\'/><text x=\\'50%\\' y=\\'55%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' fill=\\'white\\' font-size=\\'40\\' font-family=\\'sans-serif\\'>${bio.title ? bio.title.charAt(0) : 'L'}</text></svg>';" />` : `<div class="avatar-fallback">${bio.title.charAt(0)}</div>`}
     <h1>${bio.title}</h1>
     ${bio.bio ? `<p class="bio-desc">${bio.bio}</p>` : ''}
     <div class="socials-row">${socialsHtml}</div>

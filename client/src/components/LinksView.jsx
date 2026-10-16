@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   Search, 
-  Filter, 
   Copy, 
   Check, 
   ExternalLink, 
@@ -11,11 +10,9 @@ import {
   Smartphone, 
   Clock, 
   MousePointerClick, 
-  ShieldAlert, 
   Play, 
   Pause, 
   Trash2, 
-  Tag, 
   Layers, 
   AlertTriangle 
 } from 'lucide-react';

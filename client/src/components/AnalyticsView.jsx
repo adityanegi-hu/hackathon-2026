@@ -1,22 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BarChart3, 
   Users, 
   ShieldAlert, 
   QrCode, 
   Link2, 
-  ExternalLink, 
-  ArrowUpRight, 
   Smartphone, 
   Monitor, 
-  Tablet, 
-  Compass, 
-  Globe2, 
-  Layers, 
-  Play, 
-  Clock, 
-  CheckCircle2, 
-  Filter 
+  Tablet,
+  Filter,
+  Play 
 } from 'lucide-react';
 
 export default function AnalyticsView({ 
@@ -30,6 +23,15 @@ export default function AnalyticsView({
   onSelectLink 
 }) {
   const [hoveredPoint, setHoveredPoint] = useState(null);
+  const [alerts, setAlerts] = useState(null);
+  const [showAlertsDetails, setShowAlertsDetails] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/alerts')
+      .then(r => r.json())
+      .then(data => setAlerts(data))
+      .catch(err => console.error('Failed to load alerts:', err));
+  }, []);
 
   if (!analytics) {
     return (
@@ -40,7 +42,7 @@ export default function AnalyticsView({
     );
   }
 
-  const { kpis, timeSeries = [], devices = [], referrers = [], countries = [], browsers = [], operatingSystems = [], topLinks = [], recentClicks = [] } = analytics;
+  const { kpis, timeSeries = [], devices = [], referrers = [], countries = [], topLinks = [], recentClicks = [] } = analytics;
 
   // Compute Max for SVG timeline scaling
   const maxClicks = Math.max(...timeSeries.map(t => t.clicks), 10);
@@ -79,16 +81,6 @@ export default function AnalyticsView({
       .map(char => 127397 + char.charCodeAt());
     return String.fromCodePoint(...codePoints);
   };
-
-  const [alerts, setAlerts] = useState(null);
-  const [showAlertsDetails, setShowAlertsDetails] = useState(false);
-
-  React.useEffect(() => {
-    fetch('/api/alerts')
-      .then(r => r.json())
-      .then(data => setAlerts(data))
-      .catch(err => console.error('Failed to load alerts:', err));
-  }, []);
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>

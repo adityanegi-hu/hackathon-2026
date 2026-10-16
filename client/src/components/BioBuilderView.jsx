@@ -1,21 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Sparkles, 
   Plus, 
   Trash2, 
   ExternalLink, 
   Save, 
   Smartphone, 
-  Check, 
-  Globe, 
-  Share2 
+  Globe 
 } from 'lucide-react';
 
 export default function BioBuilderView({ notify }) {
   const [slug, setSlug] = useState('alex-growth');
   const [title, setTitle] = useState('Alex Rivera | Growth & Product Lead');
   const [bio, setBio] = useState('Curating high-impact marketing tools, open-source projects, and keynote recordings.');
-  const [avatarUrl, setAvatarUrl] = useState('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=250&auto=format&fit=crop&q=80');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [theme, setTheme] = useState('luxury-dark');
   const [links, setLinks] = useState([
     { title: '🚀 Summer 2026 Product Showcase', subtitle: 'Explore the newest features', url: `${window.location.origin}/summer26` },
@@ -30,6 +27,7 @@ export default function BioBuilderView({ notify }) {
     youtube: 'https://youtube.com'
   });
   const [saving, setSaving] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   // Load existing bio if available
   useEffect(() => {
@@ -45,7 +43,7 @@ export default function BioBuilderView({ notify }) {
           if (data.bio.socials) setSocials(data.bio.socials);
         }
       })
-      .catch(err => console.log('Using default bio profile'));
+      .catch(() => console.log('Using default bio profile'));
   }, []);
 
   const handleAddLink = () => {
@@ -323,15 +321,16 @@ export default function BioBuilderView({ notify }) {
             <div style={{ overflowY: 'auto', flex: '1', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', paddingTop: '1rem' }}>
               
               {/* Avatar */}
-              {avatarUrl ? (
+              {avatarUrl && !imgError ? (
                 <img 
                   src={avatarUrl} 
                   alt={title} 
+                  onError={() => setImgError(true)}
                   style={{ width: '68px', height: '68px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #818cf8', marginBottom: '0.75rem' }} 
                 />
               ) : (
                 <div style={{ width: '68px', height: '68px', borderRadius: '50%', background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', color: 'white', marginBottom: '0.75rem' }}>
-                  {title.charAt(0)}
+                  {title.charAt(0) || 'L'}
                 </div>
               )}
 

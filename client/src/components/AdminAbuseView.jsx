@@ -1,15 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ShieldAlert, 
-  ShieldCheck, 
-  AlertTriangle, 
   Trash2, 
-  Plus, 
-  RotateCcw, 
-  ExternalLink, 
-  Ban, 
-  CheckCircle2, 
-  Filter 
+  Ban,
+  RotateCcw 
 } from 'lucide-react';
 
 export default function AdminAbuseView({ onRefresh, notify, links = [] }) {

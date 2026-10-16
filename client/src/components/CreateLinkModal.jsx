@@ -5,13 +5,10 @@ import {
   ArrowLeft, 
   Check, 
   AlertCircle, 
-  ShieldCheck, 
   Clock, 
   MousePointerClick, 
   Lock, 
   Smartphone, 
-  Tag, 
-  Layers, 
   Sparkles,
   RefreshCw
 } from 'lucide-react';
@@ -133,7 +130,7 @@ export default function CreateLinkModal({
       try {
         const host = new URL(originalUrl.startsWith('http') ? originalUrl : `https://${originalUrl}`).hostname;
         setTitle(`${host.replace('www.', '')} Short Link`);
-      } catch (e) {
+      } catch {
         setTitle('Custom Short Link');
       }
     }

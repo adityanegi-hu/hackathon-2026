@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { 
-  UploadCloud, 
-  FileText, 
   CheckCircle, 
   AlertTriangle, 
   Sparkles, 
-  Download, 
   ArrowRight, 
   RefreshCw,
   FileSpreadsheet
@@ -19,7 +16,7 @@ https://github.com/trending,summer26,Duplicate Summer Alias,Summer Launch 2026,c
 https://linear.app/features,linear-app,Linear Product Features,Mobile App Acquisition,product;saas
 https://vercel.com/analytics,vercel-stats,Vercel Web Analytics,Summer Launch 2026,hosting;analytics`;
 
-export default function BulkImportView({ onRefresh, notify, campaigns = [] }) {
+export default function BulkImportView({ onRefresh, notify }) {
   const [csvText, setCsvText] = useState('');
   const [previewData, setPreviewData] = useState(null);
   const [loadingPreview, setLoadingPreview] = useState(false);

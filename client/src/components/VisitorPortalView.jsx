@@ -6,15 +6,11 @@ import {
   Sparkles, 
   ArrowRight, 
   AlertCircle, 
-  CheckCircle2, 
-  Smartphone, 
-  Clock, 
-  MousePointerClick 
+  CheckCircle2 
 } from 'lucide-react';
 
-export default function VisitorPortalView({ links = [], onSwitchRole }) {
+export default function VisitorPortalView({ onSwitchRole }) {
   const [testCode, setTestCode] = useState('summer26');
-  const [deviceSim, setDeviceSim] = useState('desktop');
 
   const sampleScenarios = [
     { code: 'summer26', label: 'Active Link (Product Showcase)', desc: 'Directs seamlessly to destination with UTM parameters' },
