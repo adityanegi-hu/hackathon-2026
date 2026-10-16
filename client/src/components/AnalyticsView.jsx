@@ -11,6 +11,7 @@ import {
   Filter,
   Play 
 } from 'lucide-react';
+import { staticStore } from '../staticStore';
 
 export default function AnalyticsView({ 
   analytics, 
@@ -27,10 +28,8 @@ export default function AnalyticsView({
   const [showAlertsDetails, setShowAlertsDetails] = useState(false);
 
   useEffect(() => {
-    fetch('/api/alerts')
-      .then(r => r.json())
-      .then(data => setAlerts(data))
-      .catch(err => console.error('Failed to load alerts:', err));
+    const data = staticStore.getAlerts();
+    setAlerts(data);
   }, []);
 
   if (!analytics) {

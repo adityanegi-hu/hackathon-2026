@@ -8,10 +8,12 @@ import {
   Lock 
 } from 'lucide-react';
 
+import staticStore from '../staticStore';
+
 export default function SettingsView({ workspaces = [], onRefresh, notify, role = 'user' }) {
   const [settings, setSettings] = useState({
     platformName: 'LinkPulse',
-    defaultDomain: 'localhost:5000',
+    defaultDomain: 'localhost:5173',
     defaultRateLimitPerMin: 30,
     autoBotFilter: true,
     strictDomainCheck: true,
@@ -22,12 +24,12 @@ export default function SettingsView({ workspaces = [], onRefresh, notify, role 
   const [creatingWorkspace, setCreatingWorkspace] = useState(false);
 
   useEffect(() => {
-    fetch('/api/settings')
-      .then(r => r.json())
-      .then(data => {
-        if (data.settings) setSettings(data.settings);
-      })
-      .catch(err => console.error('Failed to load settings:', err));
+    try {
+      const data = staticStore.getSettings();
+      if (data.settings) setSettings(data.settings);
+    } catch (err) {
+      console.error('Failed to load settings:', err);
+    }
   }, []);
 
   const handleSaveSettings = async (e) => {
@@ -38,16 +40,7 @@ export default function SettingsView({ workspaces = [], onRefresh, notify, role 
     }
     setSavingSettings(true);
     try {
-      const res = await fetch('/api/settings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-role': 'admin',
-          'x-user-id': '2'
-        },
-        body: JSON.stringify(settings)
-      });
-      if (!res.ok) throw new Error('Failed to update platform settings');
+      staticStore.saveSettings(settings);
       notify('Platform settings saved successfully!', 'success');
     } catch (err) {
       notify(err.message, 'error');
@@ -65,12 +58,7 @@ export default function SettingsView({ workspaces = [], onRefresh, notify, role 
 
     setCreatingWorkspace(true);
     try {
-      const res = await fetch('/api/workspaces', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newWorkspaceName.trim() })
-      });
-      if (!res.ok) throw new Error('Failed to create workspace');
+      staticStore.createWorkspace(newWorkspaceName.trim());
       notify(`Workspace "${newWorkspaceName}" created!`, 'success');
       setNewWorkspaceName('');
       onRefresh();
@@ -315,20 +303,20 @@ export default function SettingsView({ workspaces = [], onRefresh, notify, role 
 
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Database Engine:</span>
-                <strong style={{ color: 'white' }}>SQLite 3 (WAL Mode)</strong>
+                <span>Architecture Mode:</span>
+                <strong style={{ color: '#10b981' }}>100% Client-Side Static</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Redirection Engine:</span>
-                <strong style={{ color: '#10b981' }}>Asynchronous (Non-Blocking)</strong>
+                <span>Storage Layer:</span>
+                <strong style={{ color: 'white' }}>LocalStorage Reactive Engine</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Storage Path:</span>
-                <code style={{ color: '#818cf8', fontSize: '0.75rem' }}>linkpulse.db</code>
+                <span>API Usage:</span>
+                <code style={{ color: '#818cf8', fontSize: '0.75rem' }}>0 External / 0 Backend Calls</code>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Node.js Runtime:</span>
-                <strong style={{ color: 'white' }}>v22 (Express 5)</strong>
+                <span>QR & Analytics:</span>
+                <strong style={{ color: 'white' }}>Native In-Browser Execution</strong>
               </div>
             </div>
           </div>

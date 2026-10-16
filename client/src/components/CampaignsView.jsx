@@ -4,6 +4,7 @@ import {
   Trash2, 
   ArrowRight 
 } from 'lucide-react';
+import { staticStore } from '../staticStore';
 
 export default function CampaignsView({ 
   campaigns = [], 
@@ -26,12 +27,7 @@ export default function CampaignsView({
 
     setLoading(true);
     try {
-      const res = await fetch('/api/campaigns', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description, color })
-      });
-      if (!res.ok) throw new Error('Failed to create campaign');
+      staticStore.createCampaign({ name, description, color });
       notify(`Campaign "${name}" created!`, 'success');
       setName('');
       setDescription('');
@@ -50,8 +46,7 @@ export default function CampaignsView({
     }
 
     try {
-      const res = await fetch(`/api/campaigns/${camp.id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete campaign');
+      staticStore.deleteCampaign(camp.id);
       notify(`Campaign "${camp.name}" removed`, 'success');
       onRefresh();
     } catch (err) {

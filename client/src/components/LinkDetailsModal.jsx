@@ -12,18 +12,21 @@ import {
   Save
 } from 'lucide-react';
 
+import staticStore from '../staticStore';
+
 export default function LinkDetailsModal({ 
   link, 
   isOpen, 
   onClose, 
   onRefresh,
   campaigns = [],
-  notify,
-  role = 'user'
+  notify
 }) {
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'clicks' | 'qr' | 'edit'
   const [details, setDetails] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState('');
+  const [qrSvgUrl, setQrSvgUrl] = useState('');
 
   // Edit Form State
   const [editTitle, setEditTitle] = useState('');
@@ -39,20 +42,31 @@ export default function LinkDetailsModal({
     if (!link || !isOpen) return;
 
     setActiveTab('overview');
-    fetch(`/api/links/${link.id}`)
-      .then(r => r.json())
-      .then(data => {
-        setDetails(data);
-        const l = data.link || link;
-        setEditTitle(l.title || '');
-        setEditUrl(l.original_url || '');
-        setEditAlias(l.short_code || '');
-        setEditLimit(l.click_limit !== null ? String(l.click_limit) : '');
-        setEditExpiry(l.expires_at ? l.expires_at.slice(0, 16) : '');
-        setEditMobileUrl(l.mobile_url || '');
-        setEditCampaignId(l.campaign_id ? String(l.campaign_id) : '');
-      })
-      .catch(err => console.error('Failed to load link details:', err));
+    try {
+      const data = staticStore.getLinkById(link.id);
+      setDetails(data);
+      const l = data.link || link;
+      setEditTitle(l.title || '');
+      setEditUrl(l.original_url || '');
+      setEditAlias(l.short_code || '');
+      setEditLimit(l.click_limit !== null && l.click_limit !== undefined ? String(l.click_limit) : '');
+      setEditExpiry(l.expires_at ? l.expires_at.slice(0, 16) : '');
+      setEditMobileUrl(l.mobile_url || '');
+      setEditCampaignId(l.campaign_id ? String(l.campaign_id) : '');
+
+      staticStore.generateQr({ code: l.short_code, size: 300, format: 'dataurl' })
+        .then(res => setQrDataUrl(res.qrDataUrl))
+        .catch(err => console.error('QR generation error:', err));
+
+      staticStore.generateQr({ code: l.short_code, format: 'svg' })
+        .then(res => {
+          const blob = new Blob([res.svgString], { type: 'image/svg+xml' });
+          setQrSvgUrl(URL.createObjectURL(blob));
+        })
+        .catch(err => console.error('QR SVG error:', err));
+    } catch (err) {
+      console.error('Failed to load link details:', err);
+    }
   }, [link, isOpen]);
 
   if (!isOpen || !link) return null;
@@ -72,32 +86,18 @@ export default function LinkDetailsModal({
     e.preventDefault();
     setSavingEdit(true);
 
-    const authHeaders = {
-      'Content-Type': 'application/json',
-      'x-role': role === 'admin' ? 'admin' : 'user',
-      'x-user-id': role === 'admin' ? '2' : '1'
-    };
-
     try {
-      const res = await fetch(`/api/links/${currentLink.id}`, {
-        method: 'PUT',
-        headers: authHeaders,
-        body: JSON.stringify({
-          title: editTitle,
-          original_url: editUrl,
-          custom_alias: editAlias,
-          click_limit: editLimit ? Number(editLimit) : null,
-          expires_at: editExpiry || null,
-          mobile_url: editMobileUrl || null,
-          campaign_id: editCampaignId ? Number(editCampaignId) : null
-        })
+      const res = await staticStore.updateLink(currentLink.id, {
+        title: editTitle,
+        original_url: editUrl,
+        click_limit: editLimit ? Number(editLimit) : null,
+        expires_at: editExpiry || null,
+        mobile_url: editMobileUrl || null,
+        campaign_id: editCampaignId ? Number(editCampaignId) : null
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to update link');
-
       notify('Link rules and details updated successfully!', 'success');
-      setDetails(prev => ({ ...prev, link: data.link }));
+      setDetails(prev => ({ ...prev, link: res.link }));
       if (onRefresh) onRefresh();
       setActiveTab('overview');
     } catch (err) {
@@ -363,38 +363,46 @@ export default function LinkDetailsModal({
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <img 
-                  src={`/api/qr/${currentLink.short_code}?size=300`} 
-                  alt="QR code" 
-                  style={{ width: '220px', height: '220px', display: 'block' }}
-                />
+                {qrDataUrl ? (
+                  <img 
+                    src={qrDataUrl} 
+                    alt="QR code" 
+                    style={{ width: '220px', height: '220px', display: 'block' }}
+                  />
+                ) : (
+                  <div style={{ color: '#0f172a', fontSize: '0.85rem' }}>Generating QR...</div>
+                )}
               </div>
 
               <div>
                 <h4 style={{ fontSize: '1.1rem', fontWeight: 800 }}>/{currentLink.short_code}</h4>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Targeting URL with automated scan logging (?qr=1)</p>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Targeting URL with in-browser client scan logging</p>
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <a
-                  href={`/api/qr/${currentLink.short_code}?format=png&size=600`}
-                  download={`qr-${currentLink.short_code}.png`}
-                  className="btn-primary"
-                  style={{ fontSize: '0.85rem' }}
-                >
-                  <Download size={14} />
-                  <span>Download PNG</span>
-                </a>
+                {qrDataUrl && (
+                  <a
+                    href={qrDataUrl}
+                    download={`qr-${currentLink.short_code}.png`}
+                    className="btn-primary"
+                    style={{ fontSize: '0.85rem' }}
+                  >
+                    <Download size={14} />
+                    <span>Download PNG</span>
+                  </a>
+                )}
 
-                <a
-                  href={`/api/qr/${currentLink.short_code}?format=svg`}
-                  download={`qr-${currentLink.short_code}.svg`}
-                  className="btn-secondary"
-                  style={{ fontSize: '0.85rem' }}
-                >
-                  <Download size={14} />
-                  <span>Download SVG</span>
-                </a>
+                {qrSvgUrl && (
+                  <a
+                    href={qrSvgUrl}
+                    download={`qr-${currentLink.short_code}.svg`}
+                    className="btn-secondary"
+                    style={{ fontSize: '0.85rem' }}
+                  >
+                    <Download size={14} />
+                    <span>Download SVG</span>
+                  </a>
+                )}
               </div>
             </div>
           )}

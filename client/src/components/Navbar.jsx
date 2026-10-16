@@ -13,7 +13,8 @@ import {
   User, 
   Shield, 
   Globe,
-  Settings
+  Settings,
+  Folder
 } from 'lucide-react';
 
 export default function Navbar({ 

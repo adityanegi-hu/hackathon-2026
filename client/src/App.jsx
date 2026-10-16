@@ -13,9 +13,12 @@ import CreateLinkModal from './components/CreateLinkModal';
 import SimulatorModal from './components/SimulatorModal';
 import LinkDetailsModal from './components/LinkDetailsModal';
 import DemoGuideModal from './components/DemoGuideModal';
+import PublicVisitorView from './components/PublicVisitorView';
 import { CheckCircle2, AlertCircle, Info } from 'lucide-react';
+import { staticStore } from './staticStore';
 
 export default function App() {
+  const [pathname, setPathname] = useState(window.location.pathname || '/');
   const [currentTab, setCurrentTab] = useState('analytics');
   const [role, setRole] = useState('user'); // 'user' | 'admin' | 'visitor'
   const [period, setPeriod] = useState('30d');
@@ -47,47 +50,35 @@ export default function App() {
     }, 4000);
   };
 
-  // Fetch all core data
+  // Fetch all core data from static store
   const fetchData = async () => {
     try {
       const roleParam = role === 'admin' ? 'admin' : 'user';
-      const userParam = role === 'admin' ? '2' : '1';
-      const authHeaders = {
-        'x-role': roleParam,
-        'x-user-id': userParam
-      };
+      const userParam = role === 'admin' ? 2 : 1;
 
-      const queryParams = new URLSearchParams({
+      const dataLinks = staticStore.getLinks({
+        role: roleParam,
+        userId: userParam,
+        workspaceId: selectedWorkspace
+      });
+      const dataCampaigns = staticStore.getCampaigns({
+        role: roleParam,
+        userId: userParam
+      });
+      const dataWorkspaces = staticStore.getWorkspaces();
+      const dataAnalytics = staticStore.getAnalytics({
         period,
-        role: roleParam,
-        userId: userParam,
-        ...(selectedCampaign ? { campaignId: selectedCampaign } : {})
+        campaignId: selectedCampaign,
+        workspaceId: selectedWorkspace,
+        role: roleParam
       });
-
-      const linksParams = new URLSearchParams({
-        role: roleParam,
-        userId: userParam,
-        ...(selectedWorkspace && selectedWorkspace !== 'all' ? { workspaceId: selectedWorkspace } : {})
-      });
-
-      const [resLinks, resCampaigns, resWorkspaces, resAnalytics] = await Promise.all([
-        fetch(`/api/links?${linksParams}`, { headers: authHeaders }),
-        fetch(`/api/campaigns?role=${roleParam}&userId=${userParam}`, { headers: authHeaders }),
-        fetch('/api/workspaces', { headers: authHeaders }),
-        fetch(`/api/analytics?${queryParams}`, { headers: authHeaders })
-      ]);
-
-      const dataLinks = await resLinks.json();
-      const dataCampaigns = await resCampaigns.json();
-      const dataWorkspaces = await resWorkspaces.json();
-      const dataAnalytics = await resAnalytics.json();
 
       setLinks(dataLinks.links || []);
       setCampaigns(dataCampaigns.campaigns || []);
       setWorkspaces(dataWorkspaces.workspaces || []);
       setAnalytics(dataAnalytics);
     } catch (err) {
-      console.error('Failed to load LinkPulse data:', err);
+      console.error('Failed to load LinkPulse static data:', err);
     } finally {
       setLoading(false);
     }
@@ -120,7 +111,16 @@ export default function App() {
     setCurrentTab('qr');
   };
 
+  const handleReturnHome = () => {
+    window.history.pushState(null, '', '/');
+    setPathname('/');
+  };
+
   const abuseCount = links.filter(l => l.status === 'disabled_abuse').length;
+
+  if (pathname !== '/' && pathname.length > 1) {
+    return <PublicVisitorView onReturnHome={handleReturnHome} />;
+  }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

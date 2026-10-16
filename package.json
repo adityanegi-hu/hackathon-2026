@@ -4,13 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "npm run dev --prefix client",
+    "preview": "npm run preview --prefix client",
+    "build:client": "npm run build --prefix client",
     "start": "node server/server.js",
     "test": "node test_mongo_integration.js",
     "audit": "node scripts/audit_database.js",
     "audit:full": "node scripts/master_audit.js",
     "verify:genuine": "node scripts/verify_genuine_live.js",
-    "test:rbac": "node scripts/test_rbac.js",
-    "build:client": "npm run build --prefix client"
+    "test:rbac": "node scripts/test_rbac.js"
   },
   "keywords": ["url-shortener", "analytics", "link-management", "qr-code", "mongodb"],
   "author": "",

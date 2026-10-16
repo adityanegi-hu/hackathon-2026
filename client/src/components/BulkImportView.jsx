@@ -8,6 +8,7 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { staticStore } from '../staticStore';
 
 const SAMPLE_CSV = `url,alias,title,campaign,tags
 https://stripe.com/docs,stripe-dev,Stripe Integration Docs,Summer Launch 2026,payments;dev
@@ -47,16 +48,9 @@ export default function BulkImportView({ onRefresh, notify }) {
 
     setLoadingPreview(true);
     try {
-      const res = await fetch('/api/import/preview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ csvText })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to preview CSV');
-
+      const data = await staticStore.previewBulkImport(csvText);
       setPreviewData(data);
-      notify(`Preview generated: ${data.validCount} valid, ${data.invalidCount} invalid`, 'info');
+      notify(`Preview generated: ${data.validCount} valid, ${data.invalidCount} rejected`, 'info');
     } catch (err) {
       notify(err.message, 'error');
     } finally {
@@ -73,14 +67,7 @@ export default function BulkImportView({ onRefresh, notify }) {
     setImporting(true);
     try {
       const validRows = previewData.rows.filter(r => r.isValid);
-      const res = await fetch('/api/import/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rows: validRows })
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Import failed');
+      const data = await staticStore.executeBulkImport(validRows);
 
       confetti({
         particleCount: 80,

@@ -4,6 +4,7 @@ import {
   ExternalLink, 
   Smartphone 
 } from 'lucide-react';
+import staticStore from '../staticStore';
 
 export default function QRStudioView({ links = [], initialLink = null, notify }) {
   const [selectedLinkCode, setSelectedLinkCode] = useState(initialLink ? initialLink.short_code : (links[0]?.short_code || 'summer26'));
@@ -20,41 +21,64 @@ export default function QRStudioView({ links = [], initialLink = null, notify })
     }
   }, [initialLink]);
 
-  // Fetch QR Code data URL whenever parameters change
+  // Generate QR Code data URL whenever parameters change purely in-browser
   useEffect(() => {
     if (!selectedLinkCode) return;
 
     let isMounted = true;
 
-    const query = new URLSearchParams({
+    staticStore.generateQr({
+      code: selectedLinkCode,
       color: fgColor,
       background: bgColor,
       ecc,
-      size: String(size),
+      size,
       format: 'dataurl'
+    }).then(res => {
+      if (isMounted && res.qrDataUrl) {
+        setQrDataUrl(res.qrDataUrl);
+      }
+    }).catch(err => {
+      console.error('Failed to generate QR in-browser:', err);
     });
-
-    fetch(`/api/qr/${selectedLinkCode}?${query}`)
-      .then(r => r.json())
-      .then(data => {
-        if (isMounted && data.qrDataUrl) {
-          setQrDataUrl(data.qrDataUrl);
-        }
-      })
-      .catch(err => console.error('Failed to load QR code:', err));
 
     return () => { isMounted = false; };
   }, [selectedLinkCode, fgColor, bgColor, ecc, size]);
 
-  const handleDownload = (format = 'png') => {
-    const url = `/api/qr/${selectedLinkCode}?color=${encodeURIComponent(fgColor)}&background=${encodeURIComponent(bgColor)}&ecc=${ecc}&size=${size}&format=${format}`;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `linkpulse-qr-${selectedLinkCode}.${format}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    notify(`Downloaded ${format.toUpperCase()} QR code`, 'success');
+  const handleDownload = async (format = 'png') => {
+    try {
+      let downloadHref = qrDataUrl;
+      let cleanupBlob = false;
+
+      if (format === 'svg') {
+        const res = await staticStore.generateQr({
+          code: selectedLinkCode,
+          color: fgColor,
+          background: bgColor,
+          ecc,
+          size,
+          format: 'svg'
+        });
+        const blob = new Blob([res.svgString], { type: 'image/svg+xml' });
+        downloadHref = URL.createObjectURL(blob);
+        cleanupBlob = true;
+      }
+
+      const a = document.createElement('a');
+      a.href = downloadHref;
+      a.download = `linkpulse-qr-${selectedLinkCode}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      if (cleanupBlob) {
+        setTimeout(() => URL.revokeObjectURL(downloadHref), 1000);
+      }
+
+      notify(`Downloaded ${format.toUpperCase()} QR code`, 'success');
+    } catch (err) {
+      notify(`Download failed: ${err.message}`, 'error');
+    }
   };
 
   const currentLink = links.find(l => l.short_code === selectedLinkCode);

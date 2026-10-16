@@ -7,6 +7,7 @@ import {
   Smartphone, 
   Globe 
 } from 'lucide-react';
+import { staticStore } from '../staticStore';
 
 export default function BioBuilderView({ notify }) {
   const [slug, setSlug] = useState('alex-growth');
@@ -31,19 +32,15 @@ export default function BioBuilderView({ notify }) {
 
   // Load existing bio if available
   useEffect(() => {
-    fetch('/api/bio/alex-growth')
-      .then(r => r.json())
-      .then(data => {
-        if (data.bio) {
-          setTitle(data.bio.title || title);
-          setBio(data.bio.bio || bio);
-          setAvatarUrl(data.bio.avatar_url || avatarUrl);
-          setTheme(data.bio.theme || theme);
-          if (data.bio.links && data.bio.links.length > 0) setLinks(data.bio.links);
-          if (data.bio.socials) setSocials(data.bio.socials);
-        }
-      })
-      .catch(() => console.log('Using default bio profile'));
+    const data = staticStore.getBio();
+    if (data.bio) {
+      setTitle(data.bio.title || title);
+      setBio(data.bio.bio || bio);
+      setAvatarUrl(data.bio.avatar_url || '');
+      setTheme(data.bio.theme || theme);
+      if (data.bio.links && data.bio.links.length > 0) setLinks(data.bio.links);
+      if (data.bio.socials) setSocials(data.bio.socials);
+    }
   }, []);
 
   const handleAddLink = () => {
@@ -66,21 +63,16 @@ export default function BioBuilderView({ notify }) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch('/api/bio', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          slug,
-          title,
-          bio,
-          avatar_url: avatarUrl,
-          theme,
-          links,
-          socials
-        })
+      staticStore.saveBio({
+        slug,
+        title,
+        bio,
+        avatar_url: avatarUrl,
+        theme,
+        links,
+        socials
       });
-      if (!res.ok) throw new Error('Failed to save bio page');
-      notify(`Bio page saved! Public URL: /bio/${slug}`, 'success');
+      notify(`Bio profile saved to local storage! Preview updated in real time.`, 'success');
     } catch (err) {
       notify(err.message, 'error');
     } finally {

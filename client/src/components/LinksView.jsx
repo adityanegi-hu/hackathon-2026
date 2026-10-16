@@ -17,14 +17,15 @@ import {
   AlertTriangle 
 } from 'lucide-react';
 
+import staticStore from '../staticStore';
+
 export default function LinksView({ 
   links = [], 
   onRefresh, 
   onSelectLink, 
   onShowQr, 
   campaigns = [],
-  notify,
-  role 
+  notify
 }) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -39,48 +40,28 @@ export default function LinksView({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleToggleStatus = async (link) => {
+  const handleToggleStatus = (link) => {
     if (link.status === 'disabled_abuse') {
       notify('This link was suspended by an administrator for abuse policy violation and cannot be unpaused.', 'error');
       return;
     }
 
-    const nextStatus = link.status === 'active' ? 'inactive' : 'active';
-    const authHeaders = {
-      'Content-Type': 'application/json',
-      'x-role': role === 'admin' ? 'admin' : 'user',
-      'x-user-id': role === 'admin' ? '2' : '1'
-    };
     try {
-      const res = await fetch(`/api/links/${link.id}/status`, {
-        method: 'PATCH',
-        headers: authHeaders,
-        body: JSON.stringify({ status: nextStatus })
-      });
-      if (!res.ok) throw new Error('Failed to update link status');
-      notify(`Link status changed to ${nextStatus}`, 'success');
+      const res = staticStore.toggleLinkStatus(link.id);
+      notify(`Link status changed to ${res.link.status}`, 'success');
       onRefresh();
     } catch (err) {
       notify(err.message, 'error');
     }
   };
 
-  const handleDelete = async (link) => {
+  const handleDelete = (link) => {
     if (!window.confirm(`Are you sure you want to permanently delete /${link.short_code}? All associated click analytics will also be cleared.`)) {
       return;
     }
 
-    const authHeaders = {
-      'x-role': role === 'admin' ? 'admin' : 'user',
-      'x-user-id': role === 'admin' ? '2' : '1'
-    };
-
     try {
-      const res = await fetch(`/api/links/${link.id}`, {
-        method: 'DELETE',
-        headers: authHeaders
-      });
-      if (!res.ok) throw new Error('Failed to delete link');
+      staticStore.deleteLink(link.id);
       notify(`Link /${link.short_code} deleted successfully`, 'success');
       onRefresh();
     } catch (err) {

@@ -13,6 +13,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { staticStore } from '../staticStore';
 
 export default function CreateLinkModal({ 
   isOpen, 
@@ -81,30 +82,29 @@ export default function CreateLinkModal({
     const timer = setTimeout(async () => {
       setValidating(true);
       try {
-        const res = await fetch('/api/links/validate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url: originalUrl,
-            alias: autoGenerate ? '' : customAlias
-          })
+        const val = await staticStore.validateLink({
+          original_url: originalUrl,
+          short_code: autoGenerate ? '' : customAlias
         });
-        const data = await res.json();
-        setUrlStatus({
-          valid: data.urlValid,
-          error: data.urlError,
-          warnings: data.warnings || []
-        });
-        setAliasStatus({
-          valid: data.aliasValid,
-          error: data.aliasError
-        });
+
+        if (val.valid) {
+          setUrlStatus({ valid: true, error: null, warnings: [] });
+          setAliasStatus({ valid: true, error: null });
+        } else {
+          if (val.error.includes('alias') || val.error.includes('short code')) {
+            setUrlStatus({ valid: true, error: null, warnings: [] });
+            setAliasStatus({ valid: false, error: val.error });
+          } else {
+            setUrlStatus({ valid: false, error: val.error, warnings: [] });
+            setAliasStatus({ valid: true, error: null });
+          }
+        }
       } catch (err) {
-        console.error('Validation request failed:', err);
+        console.error('Validation check failed:', err);
       } finally {
         setValidating(false);
       }
-    }, 400);
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [originalUrl, customAlias, autoGenerate]);
@@ -171,16 +171,7 @@ export default function CreateLinkModal({
         tablet_url: enableDeviceTargeting && tabletUrl.trim() ? tabletUrl.trim() : null
       };
 
-      const res = await fetch('/api/links', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to create link');
-      }
+      const result = await staticStore.createLink(payload);
 
       // Celebratory Confetti!
       confetti({
@@ -189,8 +180,8 @@ export default function CreateLinkModal({
         origin: { y: 0.6 }
       });
 
-      notify(`Link created successfully! Code: /${data.link.short_code}`, 'success');
-      onLinkCreated(data.link);
+      notify(`Link created successfully! Code: /${result.link.short_code}`, 'success');
+      onLinkCreated(result.link);
       onClose();
     } catch (err) {
       notify(err.message, 'error');

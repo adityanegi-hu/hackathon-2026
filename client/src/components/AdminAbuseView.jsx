@@ -6,6 +6,8 @@ import {
   RotateCcw 
 } from 'lucide-react';
 
+import staticStore from '../staticStore';
+
 export default function AdminAbuseView({ onRefresh, notify, links = [] }) {
   const [adminData, setAdminData] = useState(null);
   const [blocklist, setBlocklist] = useState([]);
@@ -16,23 +18,11 @@ export default function AdminAbuseView({ onRefresh, notify, links = [] }) {
   const [takedownReason, setTakedownReason] = useState('');
   const [users, setUsers] = useState([]);
 
-  const ADMIN_HEADERS = {
-    'Content-Type': 'application/json',
-    'x-role': 'admin',
-    'x-user-id': '2'
-  };
-
-  const loadAdminData = async () => {
+  const loadAdminData = () => {
     try {
-      const authHeader = { 'x-role': 'admin', 'x-user-id': '2' };
-      const [resOverview, resBlocklist, resUsers] = await Promise.all([
-        fetch('/api/admin/overview', { headers: authHeader }),
-        fetch('/api/admin/blocklist', { headers: authHeader }),
-        fetch('/api/admin/users', { headers: authHeader })
-      ]);
-      const dataOverview = await resOverview.json();
-      const dataBlocklist = await resBlocklist.json();
-      const dataUsers = await resUsers.json();
+      const dataOverview = staticStore.getAdminOverview();
+      const dataBlocklist = staticStore.getAdminBlocklist();
+      const dataUsers = staticStore.getAdminUsers();
       setAdminData(dataOverview);
       setBlocklist(dataBlocklist.blocklist || []);
       setUsers(dataUsers.users || []);
@@ -54,15 +44,8 @@ export default function AdminAbuseView({ onRefresh, notify, links = [] }) {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/blocklist', {
-        method: 'POST',
-        headers: ADMIN_HEADERS,
-        body: JSON.stringify({ domain: newDomain, reason: newReason })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to block domain');
-
-      notify(`Domain "${data.domain}" added to blocklist. ${data.affectedLinksCount || 0} links neutralized.`, 'success');
+      const res = staticStore.addAdminBlocklist({ domain: newDomain, reason: newReason });
+      notify(`Domain "${res.entry.domain}" added to blocklist. ${res.quarantinedCount || 0} links neutralized.`, 'success');
       setNewDomain('');
       setNewReason('');
       loadAdminData();
@@ -74,13 +57,9 @@ export default function AdminAbuseView({ onRefresh, notify, links = [] }) {
     }
   };
 
-  const handleRemoveBlocklist = async (id, domain) => {
+  const handleRemoveBlocklist = (id, domain) => {
     try {
-      const res = await fetch(`/api/admin/blocklist/${id}`, {
-        method: 'DELETE',
-        headers: { 'x-role': 'admin', 'x-user-id': '2' }
-      });
-      if (!res.ok) throw new Error('Failed to remove domain');
+      staticStore.removeAdminBlocklist(id);
       notify(`Domain "${domain}" removed from safety blocklist`, 'info');
       loadAdminData();
     } catch (err) {
@@ -88,13 +67,9 @@ export default function AdminAbuseView({ onRefresh, notify, links = [] }) {
     }
   };
 
-  const handleRestoreLink = async (linkId) => {
+  const handleRestoreLink = (linkId) => {
     try {
-      const res = await fetch(`/api/admin/links/${linkId}/restore`, {
-        method: 'POST',
-        headers: ADMIN_HEADERS
-      });
-      if (!res.ok) throw new Error('Failed to restore link');
+      staticStore.restoreLink(linkId);
       notify('Link restored to active status.', 'success');
       loadAdminData();
       onRefresh();
@@ -103,7 +78,7 @@ export default function AdminAbuseView({ onRefresh, notify, links = [] }) {
     }
   };
 
-  const handleTakedownLink = async (e) => {
+  const handleTakedownLink = (e) => {
     e.preventDefault();
     if (!takedownId) {
       notify('Please select a link to take down', 'error');
@@ -111,12 +86,7 @@ export default function AdminAbuseView({ onRefresh, notify, links = [] }) {
     }
 
     try {
-      const res = await fetch(`/api/admin/links/${takedownId}/disable`, {
-        method: 'POST',
-        headers: ADMIN_HEADERS,
-        body: JSON.stringify({ reason: takedownReason || 'Administrative takedown due to safety violation' })
-      });
-      if (!res.ok) throw new Error('Failed to take down link');
+      staticStore.disableLinkAbuse(takedownId, takedownReason || 'Administrative takedown due to safety violation');
       notify('Link immediately deactivated and blocked from redirection.', 'success');
       setTakedownId('');
       setTakedownReason('');

@@ -5,12 +5,12 @@ import {
   Smartphone, 
   Monitor, 
   Tablet, 
-  Globe2, 
   QrCode, 
-  Sparkles, 
   CheckCircle2, 
   AlertCircle 
 } from 'lucide-react';
+
+import staticStore from '../staticStore';
 
 export default function SimulatorModal({ 
   isOpen, 
@@ -34,19 +34,13 @@ export default function SimulatorModal({
     setLastResult(null);
 
     try {
-      const res = await fetch('/api/analytics/simulate-click', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          code: selectedCode,
-          device,
-          country,
-          isQr
-        })
+      const data = staticStore.simulateClick({
+        code: selectedCode,
+        device,
+        country,
+        referrer,
+        isQr
       });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to simulate visit');
 
       setLastResult({
         success: true,
