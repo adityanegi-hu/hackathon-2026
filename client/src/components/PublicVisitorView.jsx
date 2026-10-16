@@ -14,17 +14,26 @@ export default function PublicVisitorView({ onReturnHome }) {
   const isBioRoute = rawPath.startsWith('/bio/');
   const shortCode = rawPath.replace(/^\//, '').split('/')[0].split('?')[0];
 
-  // Bio state
-  const [bioData, setBioData] = useState(null);
+  // Bio state initialized directly
+  const [bioData] = useState(() => {
+    if (isBioRoute) {
+      try {
+        return staticStore.getBio().bio;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
 
   // Link Redirection State
   const [evalResult, setEvalResult] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !isBioRoute && Boolean(shortCode));
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [countdown, setCountdown] = useState(2);
 
-  const evaluateAndTrack = async (code, pass = '') => {
+  const evaluateAndTrack = useCallback(async (code, pass = '') => {
     setLoading(true);
     setPasswordError('');
 
@@ -50,8 +59,8 @@ export default function PublicVisitorView({ onReturnHome }) {
             referrer: document.referrer || 'Direct',
             isQr
           });
-        } catch (e) {
-          console.warn('Telemetry log:', e);
+        } catch {
+          // ignore
         }
 
         // Start countdown to redirect
@@ -70,23 +79,23 @@ export default function PublicVisitorView({ onReturnHome }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Load either Bio or Link
+  // Run redirection evaluation on mount if shortCode route
   useEffect(() => {
-    if (isBioRoute) {
-      try {
-        const data = staticStore.getBio();
-        setBioData(data.bio);
-      } catch (err) {
-        console.error('Failed to load public bio:', err);
-      } finally {
-        setLoading(false);
-      }
-    } else if (shortCode) {
-      evaluateAndTrack(shortCode);
+    let active = true;
+    if (!isBioRoute && shortCode) {
+      const timer = setTimeout(() => {
+        if (active) {
+          evaluateAndTrack(shortCode);
+        }
+      }, 0);
+      return () => {
+        active = false;
+        clearTimeout(timer);
+      };
     }
-  }, [rawPath]);
+  }, [isBioRoute, shortCode, evaluateAndTrack]);
 
   const handleUnlockPassword = async (e) => {
     e.preventDefault();

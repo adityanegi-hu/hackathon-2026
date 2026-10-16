@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Plus, 
   Trash2, 
@@ -10,18 +10,19 @@ import {
 import { staticStore } from '../staticStore';
 
 export default function BioBuilderView({ notify }) {
-  const [slug, setSlug] = useState('alex-growth');
-  const [title, setTitle] = useState('Alex Rivera | Growth & Product Lead');
-  const [bio, setBio] = useState('Curating high-impact marketing tools, open-source projects, and keynote recordings.');
-  const [avatarUrl, setAvatarUrl] = useState('');
-  const [theme, setTheme] = useState('luxury-dark');
-  const [links, setLinks] = useState([
+  const initialBio = staticStore.getBio().bio || {};
+  const [slug, setSlug] = useState(initialBio.slug || 'alex-growth');
+  const [title, setTitle] = useState(initialBio.title || 'Alex Rivera | Growth & Product Lead');
+  const [bio, setBio] = useState(initialBio.bio || 'Curating high-impact marketing tools, open-source projects, and keynote recordings.');
+  const [avatarUrl, setAvatarUrl] = useState(initialBio.avatar_url || '');
+  const [theme, setTheme] = useState(initialBio.theme || 'luxury-dark');
+  const [links, setLinks] = useState(initialBio.links && initialBio.links.length > 0 ? initialBio.links : [
     { title: '🚀 Summer 2026 Product Showcase', subtitle: 'Explore the newest features', url: `${window.location.origin}/summer26` },
     { title: '📱 Download LinkPulse Mobile App', subtitle: 'iOS & Android targeting', url: `${window.location.origin}/get-app` },
     { title: '🎤 Tech Summit Keynote Replay', subtitle: 'Watch the full 45-min talk', url: `${window.location.origin}/keynote` },
     { title: '⚡ Developer API & SDK Documentation', subtitle: 'Start building today', url: `${window.location.origin}/dev-docs` }
   ]);
-  const [socials, setSocials] = useState({
+  const [socials, setSocials] = useState(initialBio.socials || {
     twitter: 'https://twitter.com',
     github: 'https://github.com',
     linkedin: 'https://linkedin.com',
@@ -29,19 +30,6 @@ export default function BioBuilderView({ notify }) {
   });
   const [saving, setSaving] = useState(false);
   const [imgError, setImgError] = useState(false);
-
-  // Load existing bio if available
-  useEffect(() => {
-    const data = staticStore.getBio();
-    if (data.bio) {
-      setTitle(data.bio.title || title);
-      setBio(data.bio.bio || bio);
-      setAvatarUrl(data.bio.avatar_url || '');
-      setTheme(data.bio.theme || theme);
-      if (data.bio.links && data.bio.links.length > 0) setLinks(data.bio.links);
-      if (data.bio.socials) setSocials(data.bio.socials);
-    }
-  }, []);
 
   const handleAddLink = () => {
     setLinks([
@@ -199,6 +187,62 @@ export default function BioBuilderView({ notify }) {
               value={bio}
               onChange={e => setBio(e.target.value)}
             />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+              Theme Palette
+            </label>
+            <select
+              className="glass-input"
+              value={theme}
+              onChange={e => setTheme(e.target.value)}
+            >
+              <option value="luxury-dark">Luxury Dark (Onyx & Indigo)</option>
+              <option value="cyber-neon">Cyber Neon (Emerald & Cyan)</option>
+              <option value="sunset-gradient">Sunset (Rose & Amber)</option>
+              <option value="minimal-clean">Minimal Clean (Slate)</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+              Social Handles
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
+              <input
+                type="text"
+                className="glass-input"
+                value={socials.twitter || ''}
+                onChange={e => setSocials(prev => ({ ...prev, twitter: e.target.value }))}
+                placeholder="Twitter / X profile URL"
+                style={{ fontSize: '0.825rem' }}
+              />
+              <input
+                type="text"
+                className="glass-input"
+                value={socials.github || ''}
+                onChange={e => setSocials(prev => ({ ...prev, github: e.target.value }))}
+                placeholder="GitHub profile URL"
+                style={{ fontSize: '0.825rem' }}
+              />
+              <input
+                type="text"
+                className="glass-input"
+                value={socials.linkedin || ''}
+                onChange={e => setSocials(prev => ({ ...prev, linkedin: e.target.value }))}
+                placeholder="LinkedIn profile URL"
+                style={{ fontSize: '0.825rem' }}
+              />
+              <input
+                type="text"
+                className="glass-input"
+                value={socials.youtube || ''}
+                onChange={e => setSocials(prev => ({ ...prev, youtube: e.target.value }))}
+                placeholder="YouTube channel URL"
+                style={{ fontSize: '0.825rem' }}
+              />
+            </div>
           </div>
 
           {/* Links Customizer */}

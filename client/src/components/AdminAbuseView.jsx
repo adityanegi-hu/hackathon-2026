@@ -1,22 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   ShieldAlert, 
   Trash2, 
-  Ban,
+  Ban, 
   RotateCcw 
 } from 'lucide-react';
 
 import staticStore from '../staticStore';
 
 export default function AdminAbuseView({ onRefresh, notify, links = [] }) {
-  const [adminData, setAdminData] = useState(null);
-  const [blocklist, setBlocklist] = useState([]);
+  const [adminData, setAdminData] = useState(() => {
+    try {
+      return staticStore.getAdminOverview();
+    } catch {
+      return null;
+    }
+  });
+  const [blocklist, setBlocklist] = useState(() => {
+    try {
+      return staticStore.getAdminBlocklist().blocklist || [];
+    } catch {
+      return [];
+    }
+  });
   const [newDomain, setNewDomain] = useState('');
   const [newReason, setNewReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [takedownId, setTakedownId] = useState('');
   const [takedownReason, setTakedownReason] = useState('');
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState(() => {
+    try {
+      return staticStore.getAdminUsers().users || [];
+    } catch {
+      return [];
+    }
+  });
 
   const loadAdminData = () => {
     try {
@@ -30,10 +48,6 @@ export default function AdminAbuseView({ onRefresh, notify, links = [] }) {
       console.error('Failed to load admin data:', err);
     }
   };
-
-  useEffect(() => {
-    loadAdminData();
-  }, []);
 
   const handleAddBlocklist = async (e) => {
     e.preventDefault();

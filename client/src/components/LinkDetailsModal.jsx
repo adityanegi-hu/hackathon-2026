@@ -23,55 +23,58 @@ export default function LinkDetailsModal({
   notify
 }) {
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'clicks' | 'qr' | 'edit'
-  const [details, setDetails] = useState(null);
+  const [details, setDetails] = useState(() => {
+    if (!link) return null;
+    try {
+      return staticStore.getLinkById(link.id);
+    } catch {
+      return null;
+    }
+  });
   const [copied, setCopied] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [qrSvgUrl, setQrSvgUrl] = useState('');
 
+  const currentLink = details?.link || link || {};
+
   // Edit Form State
-  const [editTitle, setEditTitle] = useState('');
-  const [editUrl, setEditUrl] = useState('');
-  const [editAlias, setEditAlias] = useState('');
-  const [editLimit, setEditLimit] = useState('');
-  const [editExpiry, setEditExpiry] = useState('');
-  const [editMobileUrl, setEditMobileUrl] = useState('');
-  const [editCampaignId, setEditCampaignId] = useState('');
+  const [editTitle, setEditTitle] = useState(currentLink.title || '');
+  const [editUrl, setEditUrl] = useState(currentLink.original_url || '');
+  const [editAlias, setEditAlias] = useState(currentLink.short_code || '');
+  const [editLimit, setEditLimit] = useState(
+    currentLink.click_limit !== null && currentLink.click_limit !== undefined ? String(currentLink.click_limit) : ''
+  );
+  const [editExpiry, setEditExpiry] = useState(currentLink.expires_at ? currentLink.expires_at.slice(0, 16) : '');
+  const [editMobileUrl, setEditMobileUrl] = useState(currentLink.mobile_url || '');
+  const [editCampaignId, setEditCampaignId] = useState(currentLink.campaign_id ? String(currentLink.campaign_id) : '');
   const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
-    if (!link || !isOpen) return;
+    if (!currentLink.short_code) return;
+    let isMounted = true;
 
-    setActiveTab('overview');
-    try {
-      const data = staticStore.getLinkById(link.id);
-      setDetails(data);
-      const l = data.link || link;
-      setEditTitle(l.title || '');
-      setEditUrl(l.original_url || '');
-      setEditAlias(l.short_code || '');
-      setEditLimit(l.click_limit !== null && l.click_limit !== undefined ? String(l.click_limit) : '');
-      setEditExpiry(l.expires_at ? l.expires_at.slice(0, 16) : '');
-      setEditMobileUrl(l.mobile_url || '');
-      setEditCampaignId(l.campaign_id ? String(l.campaign_id) : '');
+    staticStore.generateQr({ code: currentLink.short_code, size: 300, format: 'dataurl' })
+      .then(res => {
+        if (isMounted) setQrDataUrl(res.qrDataUrl);
+      })
+      .catch(err => console.error('QR generation error:', err));
 
-      staticStore.generateQr({ code: l.short_code, size: 300, format: 'dataurl' })
-        .then(res => setQrDataUrl(res.qrDataUrl))
-        .catch(err => console.error('QR generation error:', err));
-
-      staticStore.generateQr({ code: l.short_code, format: 'svg' })
-        .then(res => {
+    staticStore.generateQr({ code: currentLink.short_code, format: 'svg' })
+      .then(res => {
+        if (isMounted) {
           const blob = new Blob([res.svgString], { type: 'image/svg+xml' });
           setQrSvgUrl(URL.createObjectURL(blob));
-        })
-        .catch(err => console.error('QR SVG error:', err));
-    } catch (err) {
-      console.error('Failed to load link details:', err);
-    }
-  }, [link, isOpen]);
+        }
+      })
+      .catch(err => console.error('QR SVG error:', err));
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentLink.short_code]);
 
   if (!isOpen || !link) return null;
 
-  const currentLink = details?.link || link;
   const clicks = details?.clicks || [];
 
   const handleCopy = () => {

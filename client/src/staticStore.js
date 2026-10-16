@@ -356,6 +356,9 @@ function getInitialSeedData() {
     platformName: 'LinkPulse Static',
     defaultDomain: 'localhost:5173',
     defaultRateLimitPerMin: 60,
+    autoBotFilter: true,
+    strictDomainCheck: true,
+    enableQrAutoTag: true,
     enableSafeBrowsing: true,
     engine: 'In-Browser LocalStorage'
   };
@@ -380,7 +383,7 @@ function loadKey(key, fallback) {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_PREFIX + key);
     return raw ? JSON.parse(raw) : fallback;
-  } catch (err) {
+  } catch {
     return fallback;
   }
 }
@@ -500,7 +503,7 @@ export const staticStore = {
       if (isBlocked) {
         return { valid: false, error: `The target domain "${hostname}" is blocked for security and safety reasons.` };
       }
-    } catch (e) {
+    } catch {
       return { valid: false, error: 'Invalid URL format. Please provide a valid web address.' };
     }
 
@@ -757,7 +760,7 @@ export const staticStore = {
       const t = c.device_type || 'desktop';
       devMap.set(t, (devMap.get(t) || 0) + 1);
     });
-    const devices = Array.from(devMap.entries()).map(([type, count]) => ({ type, count }));
+    const devices = Array.from(devMap.entries()).map(([type, count]) => ({ device_type: type, type, count }));
 
     // Referrers
     const refMap = new Map();
@@ -765,7 +768,7 @@ export const staticStore = {
       const r = c.referrer_type || 'Direct';
       refMap.set(r, (refMap.get(r) || 0) + 1);
     });
-    const referrers = Array.from(refMap.entries()).map(([source, count]) => ({ source, count }));
+    const referrers = Array.from(refMap.entries()).map(([source, count]) => ({ referrer: source, referrer_type: source, source, count }));
 
     // Countries
     const geoMap = new Map();
@@ -791,6 +794,8 @@ export const staticStore = {
           id,
           title: found?.title || 'Unknown Link',
           short_code: found?.short_code || String(id),
+          campaign_name: found?.campaign_name,
+          click_count: clicksCount,
           clicks: clicksCount
         };
       });
@@ -981,7 +986,7 @@ export const staticStore = {
         if (blocklist.some(b => host === b.domain.toLowerCase() || host.endsWith('.' + b.domain.toLowerCase()))) {
           issues.push(`Domain "${host}" is blocklisted`);
         }
-      } catch (e) {
+      } catch {
         issues.push('Invalid URL format');
       }
 
@@ -1141,7 +1146,7 @@ export const staticStore = {
           l.abuse_reason = `Auto-quarantined: Destination domain "${clean}" added to safety blocklist`;
           quarantinedCount++;
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     });
@@ -1231,7 +1236,7 @@ export const staticStore = {
       if (blocklist.some(b => host === b.domain || host.endsWith('.' + b.domain))) {
         return { status: 410, type: 'blocked_domain', message: `Destination domain "${host}" is prohibited by the safety blocklist.` };
       }
-    } catch (e) {
+    } catch {
       // ignore
     }
 
@@ -1273,7 +1278,7 @@ export const staticStore = {
       if (link.utm_medium && !destUrl.searchParams.has('utm_medium')) destUrl.searchParams.set('utm_medium', link.utm_medium);
       if (link.utm_campaign && !destUrl.searchParams.has('utm_campaign')) destUrl.searchParams.set('utm_campaign', link.utm_campaign);
       destination = destUrl.toString();
-    } catch (e) {
+    } catch {
       // ignore
     }
 

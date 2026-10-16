@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   BarChart3, 
   Users, 
@@ -24,13 +24,8 @@ export default function AnalyticsView({
   onSelectLink 
 }) {
   const [hoveredPoint, setHoveredPoint] = useState(null);
-  const [alerts, setAlerts] = useState(null);
+  const [alerts] = useState(() => staticStore.getAlerts());
   const [showAlertsDetails, setShowAlertsDetails] = useState(false);
-
-  useEffect(() => {
-    const data = staticStore.getAlerts();
-    setAlerts(data);
-  }, []);
 
   if (!analytics) {
     return (
@@ -435,14 +430,15 @@ export default function AnalyticsView({
           <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '1.5rem' }}>Client device distribution</p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: 'auto', marginBottom: 'auto' }}>
-            {devices.map(d => {
+            {devices.map((d, idx) => {
               const pct = Math.round((d.count / totalDeviceClicks) * 100);
+              const devType = d.device_type || d.type || 'desktop';
               return (
-                <div key={d.device_type}>
+                <div key={`${devType}-${idx}`}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textTransform: 'capitalize' }}>
-                      {getDeviceIcon(d.device_type)}
-                      <span style={{ fontWeight: 600 }}>{d.device_type}</span>
+                      {getDeviceIcon(devType)}
+                      <span style={{ fontWeight: 600 }}>{devType}</span>
                     </div>
                     <div>
                       <strong style={{ color: 'white' }}>{pct}%</strong>
@@ -584,9 +580,9 @@ export default function AnalyticsView({
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {topLinks.map((link) => (
+            {topLinks.map((link, idx) => (
               <div
-                key={link.id}
+                key={link.id || `top-${idx}`}
                 onClick={() => onSelectLink && onSelectLink(link)}
                 style={{
                   padding: '0.85rem 1rem',
@@ -640,9 +636,9 @@ export default function AnalyticsView({
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', overflowY: 'auto', maxHeight: '360px', paddingRight: '0.3rem' }}>
-            {recentClicks.slice(0, 10).map((click) => (
+            {recentClicks.slice(0, 10).map((click, idx) => (
               <div
-                key={click.id}
+                key={click.id || `click-${idx}`}
                 style={{
                   padding: '0.6rem 0.8rem',
                   background: 'rgba(15, 23, 42, 0.5)',

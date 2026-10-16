@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Settings, 
   Layers, 
@@ -11,26 +11,30 @@ import {
 import staticStore from '../staticStore';
 
 export default function SettingsView({ workspaces = [], onRefresh, notify, role = 'user' }) {
-  const [settings, setSettings] = useState({
-    platformName: 'LinkPulse',
-    defaultDomain: 'localhost:5173',
-    defaultRateLimitPerMin: 30,
-    autoBotFilter: true,
-    strictDomainCheck: true,
-    enableQrAutoTag: true
+  const [settings, setSettings] = useState(() => {
+    try {
+      return staticStore.getSettings().settings || {
+        platformName: 'LinkPulse',
+        defaultDomain: 'localhost:5173',
+        defaultRateLimitPerMin: 30,
+        autoBotFilter: true,
+        strictDomainCheck: true,
+        enableQrAutoTag: true
+      };
+    } catch {
+      return {
+        platformName: 'LinkPulse',
+        defaultDomain: 'localhost:5173',
+        defaultRateLimitPerMin: 30,
+        autoBotFilter: true,
+        strictDomainCheck: true,
+        enableQrAutoTag: true
+      };
+    }
   });
   const [newWorkspaceName, setNewWorkspaceName] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
   const [creatingWorkspace, setCreatingWorkspace] = useState(false);
-
-  useEffect(() => {
-    try {
-      const data = staticStore.getSettings();
-      if (data.settings) setSettings(data.settings);
-    } catch (err) {
-      console.error('Failed to load settings:', err);
-    }
-  }, []);
 
   const handleSaveSettings = async (e) => {
     e.preventDefault();
@@ -123,7 +127,7 @@ export default function SettingsView({ workspaces = [], onRefresh, notify, role 
             <input
               type="text"
               className="glass-input"
-              value={settings.platformName}
+              value={settings.platformName || ''}
               onChange={e => setSettings({ ...settings, platformName: e.target.value })}
             />
           </div>
@@ -135,7 +139,7 @@ export default function SettingsView({ workspaces = [], onRefresh, notify, role 
             <input
               type="text"
               className="glass-input"
-              value={settings.defaultDomain}
+              value={settings.defaultDomain || ''}
               onChange={e => setSettings({ ...settings, defaultDomain: e.target.value })}
             />
           </div>
@@ -149,7 +153,7 @@ export default function SettingsView({ workspaces = [], onRefresh, notify, role 
               min="5"
               max="200"
               className="glass-input"
-              value={settings.defaultRateLimitPerMin}
+              value={settings.defaultRateLimitPerMin ?? 30}
               onChange={e => setSettings({ ...settings, defaultRateLimitPerMin: Number(e.target.value) })}
             />
             <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '0.25rem', display: 'block' }}>
@@ -169,7 +173,7 @@ export default function SettingsView({ workspaces = [], onRefresh, notify, role 
               </div>
               <input
                 type="checkbox"
-                checked={settings.autoBotFilter}
+                checked={Boolean(settings.autoBotFilter)}
                 onChange={e => setSettings({ ...settings, autoBotFilter: e.target.checked })}
                 style={{ width: '18px', height: '18px', cursor: 'pointer' }}
               />
@@ -182,7 +186,7 @@ export default function SettingsView({ workspaces = [], onRefresh, notify, role 
               </div>
               <input
                 type="checkbox"
-                checked={settings.strictDomainCheck}
+                checked={Boolean(settings.strictDomainCheck)}
                 onChange={e => setSettings({ ...settings, strictDomainCheck: e.target.checked })}
                 style={{ width: '18px', height: '18px', cursor: 'pointer' }}
               />
@@ -195,7 +199,7 @@ export default function SettingsView({ workspaces = [], onRefresh, notify, role 
               </div>
               <input
                 type="checkbox"
-                checked={settings.enableQrAutoTag}
+                checked={Boolean(settings.enableQrAutoTag)}
                 onChange={e => setSettings({ ...settings, enableQrAutoTag: e.target.checked })}
                 style={{ width: '18px', height: '18px', cursor: 'pointer' }}
               />

@@ -22,7 +22,7 @@ export default function SimulatorModal({
   const [selectedCode, setSelectedCode] = useState(links[0]?.short_code || 'summer26');
   const [device, setDevice] = useState('desktop');
   const [country, setCountry] = useState('United States');
-  const [referrer, setReferrer] = useState('https://twitter.com/feed');
+  const referrer = 'https://twitter.com/feed';
   const [isQr, setIsQr] = useState(false);
   const [simulating, setSimulating] = useState(false);
   const [lastResult, setLastResult] = useState(null);
@@ -49,7 +49,9 @@ export default function SimulatorModal({
       });
 
       notify(`Simulated ${device} visit from ${country} registered for /${selectedCode}!`, 'success');
-      onSimulated && onSimulated();
+      if (onSimulated) {
+        onSimulated();
+      }
     } catch (err) {
       setLastResult({
         success: false,

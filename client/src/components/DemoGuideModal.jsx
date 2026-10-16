@@ -1,23 +1,15 @@
 import React, { useState } from 'react';
 import { 
   X, 
-  Play, 
   Sparkles, 
-  CheckCircle, 
-  ArrowRight, 
-  ShieldAlert, 
-  UploadCloud, 
-  BarChart3, 
-  ExternalLink 
+  ArrowRight
 } from 'lucide-react';
 
 export default function DemoGuideModal({ 
   isOpen, 
   onClose, 
   onSelectTab, 
-  onOpenCreate, 
-  onOpenSimulator, 
-  onSetRole 
+  onOpenCreate
 }) {
   const [activeScenario, setActiveScenario] = useState('scenario1');
 

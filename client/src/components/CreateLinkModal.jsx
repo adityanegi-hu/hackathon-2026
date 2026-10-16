@@ -50,30 +50,6 @@ export default function CreateLinkModal({
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
 
-  // Reset form when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      setStep(1);
-      setOriginalUrl('');
-      setCustomAlias('');
-      setAutoGenerate(true);
-      setTitle('');
-      setUrlStatus(null);
-      setAliasStatus(null);
-      setEnableExpiry(false);
-      setExpiresAt('');
-      setEnableClickLimit(false);
-      setClickLimit(100);
-      setEnablePassword(false);
-      setPassword('');
-      setEnableDeviceTargeting(false);
-      setMobileUrl('');
-      setTabletUrl('');
-      setSelectedCampaign('');
-      setTags(['marketing']);
-      setTagInput('');
-    }
-  }, [isOpen]);
 
   // Debounced real-time validation for Step 1
   useEffect(() => {

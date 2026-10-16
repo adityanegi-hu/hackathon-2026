@@ -14,12 +14,11 @@ export default function QRStudioView({ links = [], initialLink = null, notify })
   const [size, setSize] = useState(360);
   const [qrDataUrl, setQrDataUrl] = useState('');
 
-  // Sync when initialLink changes
-  useEffect(() => {
-    if (initialLink) {
-      setSelectedLinkCode(initialLink.short_code);
-    }
-  }, [initialLink]);
+  const [prevInitial, setPrevInitial] = useState(initialLink?.short_code);
+  if (initialLink && initialLink.short_code !== prevInitial) {
+    setPrevInitial(initialLink.short_code);
+    setSelectedLinkCode(initialLink.short_code);
+  }
 
   // Generate QR Code data URL whenever parameters change purely in-browser
   useEffect(() => {

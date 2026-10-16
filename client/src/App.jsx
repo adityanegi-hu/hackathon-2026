@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import Navbar from './components/Navbar';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import Sidebar from './components/Sidebar';
+import TopHeader from './components/TopHeader';
 import AnalyticsView from './components/AnalyticsView';
 import LinksView from './components/LinksView';
 import CampaignsView from './components/CampaignsView';
@@ -20,17 +21,18 @@ import { staticStore } from './staticStore';
 export default function App() {
   const [pathname, setPathname] = useState(window.location.pathname || '/');
   const [currentTab, setCurrentTab] = useState('analytics');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [role, setRole] = useState('user'); // 'user' | 'admin' | 'visitor'
   const [period, setPeriod] = useState('30d');
   const [selectedCampaign, setSelectedCampaign] = useState('');
   const [selectedWorkspace, setSelectedWorkspace] = useState('all');
 
-  // Data State
-  const [links, setLinks] = useState([]);
-  const [campaigns, setCampaigns] = useState([]);
-  const [workspaces, setWorkspaces] = useState([]);
-  const [analytics, setAnalytics] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Direct synchronous initialization from staticStore eliminates initial layout shifts & warnings
+  const [links, setLinks] = useState(() => staticStore.getLinks({ role: 'user', userId: 1, workspaceId: 'all' }).links || []);
+  const [campaigns, setCampaigns] = useState(() => staticStore.getCampaigns({ role: 'user', userId: 1 }).campaigns || []);
+  const [workspaces, setWorkspaces] = useState(() => staticStore.getWorkspaces().workspaces || []);
+  const [analytics, setAnalytics] = useState(() => staticStore.getAnalytics({ period: '30d', workspaceId: 'all', role: 'user' }));
+  const [loading, setLoading] = useState(false);
 
   // Modals & Drawers
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -51,7 +53,7 @@ export default function App() {
   };
 
   // Fetch all core data from static store
-  const fetchData = async () => {
+  const fetchData = useCallback(() => {
     try {
       const roleParam = role === 'admin' ? 'admin' : 'user';
       const userParam = role === 'admin' ? 2 : 1;
@@ -82,20 +84,26 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [role, selectedWorkspace, period, selectedCampaign]);
 
+  const isFirstMount = useRef(true);
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
     fetchData();
-  }, [period, selectedCampaign, selectedWorkspace, role]);
+  }, [fetchData]);
 
-  // When role changes to visitor, switch tab to visitor portal
-  useEffect(() => {
-    if (role === 'visitor') {
+  // When role changes, switch tab cleanly via handler
+  const handleSetRole = (newRole) => {
+    setRole(newRole);
+    if (newRole === 'visitor') {
       setCurrentTab('visitor');
     } else if (currentTab === 'visitor') {
       setCurrentTab('analytics');
     }
-  }, [role]);
+  };
 
   const handleLinkCreated = () => {
     fetchData();
@@ -123,157 +131,138 @@ export default function App() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      
-      {/* Header & Navbar */}
-      <Navbar
+    <div className="app-shell">
+      {/* Sleek Collapsible Frosted Glass Sidebar */}
+      <Sidebar
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
         role={role}
-        setRole={setRole}
+        setRole={handleSetRole}
         onOpenCreate={() => setCreateModalOpen(true)}
-        onOpenSimulator={() => setSimulatorOpen(true)}
-        onOpenDemoGuide={() => setDemoGuideOpen(true)}
         workspaces={workspaces}
         selectedWorkspace={selectedWorkspace}
         setSelectedWorkspace={setSelectedWorkspace}
         abuseCount={abuseCount}
+        isCollapsed={isSidebarCollapsed}
+        setIsCollapsed={setIsSidebarCollapsed}
       />
 
-      {/* Main App Container */}
-      <main style={{
-        maxWidth: '1440px',
-        width: '100%',
-        margin: '0 auto',
-        padding: '2rem 1.5rem',
-        flex: '1'
-      }}>
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '6rem 2rem', color: 'var(--text-muted)' }}>
-            <div className="live-dot" style={{ width: '20px', height: '20px', margin: '0 auto 1.5rem' }} />
-            <h2 style={{ fontSize: '1.25rem', color: 'white' }}>Initializing LinkPulse Hub...</h2>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '0.5rem' }}>Loading redirection telemetry and campaigns</p>
-          </div>
-        ) : (
-          <>
-            {currentTab === 'visitor' && (
-              <VisitorPortalView
-                links={links}
-                onSwitchRole={(newRole) => setRole(newRole)}
-              />
-            )}
+      {/* Main Content Layout */}
+      <div className="main-content-layout">
+        {/* Top Header Bar */}
+        <TopHeader
+          currentTab={currentTab}
+          onOpenSimulator={() => setSimulatorOpen(true)}
+          onOpenDemoGuide={() => setDemoGuideOpen(true)}
+          totalLinksCount={links.length}
+          totalClicksCount={analytics?.kpis?.totalVisits || analytics?.kpis?.totalClicks || 0}
+        />
 
-            {currentTab === 'analytics' && (
-              <AnalyticsView
-                analytics={analytics}
-                period={period}
-                setPeriod={setPeriod}
-                selectedCampaign={selectedCampaign}
-                setSelectedCampaign={setSelectedCampaign}
-                campaigns={campaigns}
-                onOpenSimulator={() => setSimulatorOpen(true)}
-                onSelectLink={(link) => setDetailsLink(link)}
-              />
-            )}
+        {/* Scrollable Main Canvas */}
+        <main className="main-canvas-scroll">
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '6rem 2rem', color: 'var(--text-muted)' }}>
+              <div className="live-dot" style={{ width: '20px', height: '20px', margin: '0 auto 1.5rem' }} />
+              <h2 style={{ fontSize: '1.25rem', color: 'white' }}>Initializing LinkPulse Hub...</h2>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '0.5rem' }}>Loading redirection telemetry and campaigns</p>
+            </div>
+          ) : (
+            <>
+              {currentTab === 'visitor' && (
+                <VisitorPortalView
+                  links={links}
+                  onSwitchRole={handleSetRole}
+                />
+              )}
 
-            {currentTab === 'links' && (
-              <LinksView
-                links={links}
-                campaigns={campaigns}
-                onRefresh={fetchData}
-                onSelectLink={(link) => setDetailsLink(link)}
-                onShowQr={handleOpenQrForLink}
-                notify={notify}
-                role={role}
-              />
-            )}
+              {currentTab === 'analytics' && (
+                <AnalyticsView
+                  analytics={analytics}
+                  period={period}
+                  setPeriod={setPeriod}
+                  selectedCampaign={selectedCampaign}
+                  setSelectedCampaign={setSelectedCampaign}
+                  campaigns={campaigns}
+                  onOpenSimulator={() => setSimulatorOpen(true)}
+                  onSelectLink={(link) => setDetailsLink(link)}
+                />
+              )}
 
-            {currentTab === 'campaigns' && (
-              <CampaignsView
-                campaigns={campaigns}
-                onRefresh={fetchData}
-                onFilterCampaign={handleFilterCampaignFromCard}
-                notify={notify}
-              />
-            )}
+              {currentTab === 'links' && (
+                <LinksView
+                  links={links}
+                  campaigns={campaigns}
+                  onRefresh={fetchData}
+                  onSelectLink={(link) => setDetailsLink(link)}
+                  onShowQr={handleOpenQrForLink}
+                  notify={notify}
+                  role={role}
+                />
+              )}
 
-            {currentTab === 'qr' && (
-              <QRStudioView
-                links={links}
-                initialLink={qrActiveLink}
-                notify={notify}
-              />
-            )}
+              {currentTab === 'campaigns' && (
+                <CampaignsView
+                  campaigns={campaigns}
+                  onRefresh={fetchData}
+                  onFilterCampaign={handleFilterCampaignFromCard}
+                  notify={notify}
+                />
+              )}
 
-            {currentTab === 'import' && (
-              <BulkImportView
-                campaigns={campaigns}
-                onRefresh={fetchData}
-                notify={notify}
-              />
-            )}
+              {currentTab === 'qr' && (
+                <QRStudioView
+                  links={links}
+                  initialLink={qrActiveLink}
+                  notify={notify}
+                />
+              )}
 
-            {currentTab === 'bio' && (
-              <BioBuilderView
-                notify={notify}
-              />
-            )}
+              {currentTab === 'import' && (
+                <BulkImportView
+                  campaigns={campaigns}
+                  onRefresh={fetchData}
+                  notify={notify}
+                />
+              )}
 
-            {currentTab === 'admin' && (
-              <AdminAbuseView
-                links={links}
-                onRefresh={fetchData}
-                notify={notify}
-                role={role}
-              />
-            )}
+              {currentTab === 'bio' && (
+                <BioBuilderView
+                  notify={notify}
+                />
+              )}
 
-            {currentTab === 'settings' && (
-              <SettingsView
-                workspaces={workspaces}
-                onRefresh={fetchData}
-                notify={notify}
-                role={role}
-              />
-            )}
-          </>
-        )}
-      </main>
+              {currentTab === 'admin' && (
+                <AdminAbuseView
+                  links={links}
+                  onRefresh={fetchData}
+                  notify={notify}
+                  role={role}
+                />
+              )}
 
-      {/* Footer */}
-      <footer style={{
-        borderTop: '1px solid var(--border-subtle)',
-        background: 'rgba(7, 9, 19, 0.95)',
-        padding: '1.5rem',
-        textAlign: 'center',
-        fontSize: '0.825rem',
-        color: 'var(--text-dim)'
-      }}>
-        <div style={{ maxWidth: '1440px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontWeight: 700, color: '#f8fafc' }}>LinkPulse</span>
-            <span>•</span>
-            <span>Enterprise URL Shortening & Analytics Platform</span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-            <span>SQLite Embedded Database</span>
-            <span>•</span>
-            <span>Async Non-Blocking Redirects</span>
-            <span>•</span>
-            <span style={{ color: '#10b981' }}>● System Healthy</span>
-          </div>
-        </div>
-      </footer>
+              {currentTab === 'settings' && (
+                <SettingsView
+                  workspaces={workspaces}
+                  onRefresh={fetchData}
+                  notify={notify}
+                  role={role}
+                />
+              )}
+            </>
+          )}
+        </main>
+      </div>
 
       {/* Modals */}
-      <CreateLinkModal
-        isOpen={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        onLinkCreated={handleLinkCreated}
-        campaigns={campaigns}
-        notify={notify}
-      />
+      {createModalOpen && (
+        <CreateLinkModal
+          isOpen={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          onLinkCreated={handleLinkCreated}
+          campaigns={campaigns}
+          notify={notify}
+        />
+      )}
 
       <SimulatorModal
         isOpen={simulatorOpen}
@@ -289,19 +278,22 @@ export default function App() {
         onSelectTab={(tab) => setCurrentTab(tab)}
         onOpenCreate={() => setCreateModalOpen(true)}
         onOpenSimulator={() => setSimulatorOpen(true)}
-        onSetRole={(r) => setRole(r)}
+        onSetRole={(r) => handleSetRole(r)}
       />
 
-      <LinkDetailsModal
-        isOpen={Boolean(detailsLink)}
-        link={detailsLink}
-        onClose={() => setDetailsLink(null)}
-        onOpenQr={handleOpenQrForLink}
-        onRefresh={fetchData}
-        campaigns={campaigns}
-        notify={notify}
-        role={role}
-      />
+      {detailsLink && (
+        <LinkDetailsModal
+          key={detailsLink.id}
+          isOpen={Boolean(detailsLink)}
+          link={detailsLink}
+          onClose={() => setDetailsLink(null)}
+          onOpenQr={handleOpenQrForLink}
+          onRefresh={fetchData}
+          campaigns={campaigns}
+          notify={notify}
+          role={role}
+        />
+      )}
 
       {/* Toast Notification Container */}
       <div className="toast-container">
